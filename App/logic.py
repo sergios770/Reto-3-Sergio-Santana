@@ -21,32 +21,78 @@ def load_data(catalog, filename):
     
     data_dir = os.path.dirname(os.path.realpath('__file__')) + '/Data/Challenge-2/'
     file_path = os.path.join(data_dir, filename)
+    
     with open(file_path, mode='r', encoding='utf-8-sig') as file:
         csv_reader = csv.DictReader(file)
+
         for row in csv_reader:
-            id = row.get('id', 'Indefinido')
-            if id != 'Indefinido':
-                catalog[id] = {
-                    'title': row.get('title', 'Indefinido'),
-                    'original_language': row.get('original_language', 'Indefinido'),
-                    'release_date': row.get('release_date', 'Indefinido'),
-                    'revenue': row.get('revenue', 'Indefinido'),
-                    'runtime': row.get('runtime', 'Indefinido'),
-                    'status': row.get('status', 'Indefinido'),
-                    'vote_average': row.get('vote_average', 'Indefinido'),
-                    'vote_count': row.get('vote_count', 'Indefinido'),
-                    'budget': row.get('budget', 'Indefinido'),
-                    'genres': json.loads(row.get('genres', '[]')),
-                    'production_companies': json.loads(row.get('production_companies', '[]'))
-                }
+            
+            id = row.get('title', 'Indefinido')
+
+            if id not in catalog:
+                catalog[id] = {}
+                
+            catalog[id]['original_language'] = row.get('original_language', 'Indefinido')
+            
+            date_str = row.get('release_date', 'Indefinido')
+            if date_str != 'Desconocido' and len(date_str) == 10:
+                formatted_date = date_str
+            else:
+                formatted_date = 'Indefinido'
+            catalog[id]['release_date'] = formatted_date
+
+            revenue = row.get('revenue', 'Indefinido')
+            catalog[id]['revenue'] = revenue if revenue != '0' else 'Indefinido'
+
+            runtime = row.get('runtime', 'Indefinido')
+            catalog[id]['runtime'] = runtime if runtime != '[]' else 'Indefinido'
+
+            status = row.get('status', 'Indefinido')
+            catalog[id]['status'] = status if status != '[]' else 'Indefinido'
+
+            vote_average = row.get('vote_average', 'Indefinido')
+            catalog[id]['vote_average'] = vote_average if vote_average != '[]' else 'Indefinido'
+
+            vote_count = row.get('vote_count', 'Indefinido')
+            catalog[id]['vote_count'] = vote_count if vote_count != '[]' else 'Indefinido'
+
+            budget = row.get('budget', 'Indefinido')
+            catalog[id]['budget'] = budget if budget != '0' else 'Indefinido'
+
+            genres_str = row.get('genres', '[]')
+            genres_list = json.loads(genres_str)
+            if genres_list:
+                genres_processed = [genre['name'] for genre in genres_list if 'name' in genre]
+                catalog[id]['genres'] = genres_processed
+            else:
+                catalog[id]['genres'] = ['Desconocido']
+
+            production_companies_str = row.get('production_companies', '[]')
+            production_companies_list = json.loads(production_companies_str)
+            if production_companies_list:
+                companies_processed = [company['name'] for company in production_companies_list if 'name' in company]
+                catalog[id]['production_companies'] = companies_processed
+            else:
+                catalog[id]['production_companies'] = ['Indefinida']
+
                 
 def get_data(catalog, id):
     """
     Retorna un dato por su ID.
     """
-    #TODO: Consulta en las Llamar la función del modelo para obtener un dato
-    pass
-
+    if id in catalog:
+        return {
+            'id': id,
+            'original_language': catalog[id].get('original_language', 'Indefinido'),
+            'release_date': catalog[id].get('release_date', 'Indefinido'),
+            'revenue': catalog[id].get('revenue', 'Indefinido'),
+            'runtime': catalog[id].get('runtime', 'Indefinido'),
+            'status': catalog[id].get('status', 'Indefinido'),
+            'vote_average': catalog[id].get('vote_average', 'Indefinido'),
+            'vote_count': catalog[id].get('vote_count', 'Indefinido'),
+            'budget': catalog[id].get('budget', 'Indefinido'),
+            'genres': catalog[id].get('genres', ['Indefinido']),
+            'production_companies': catalog[id].get('production_companies', ['Indefinido'])}
 
 def req_1(catalog):
     """
