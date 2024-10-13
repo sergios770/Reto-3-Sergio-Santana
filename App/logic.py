@@ -1,11 +1,15 @@
 import time
+import csv
+import json
+import os
+from datetime import datetime
 
 def new_logic():
     """
     Crea el catalogo para almacenar las estructuras de datos
     """
-    #TODO: Llama a las funciónes de creación de las estructuras de datos
-    pass
+    catalog = {}
+    return catalog
 
 
 # Funciones para la carga de datos
@@ -14,11 +18,28 @@ def load_data(catalog, filename):
     """
     Carga los datos del reto
     """
-    # TODO: Realizar la carga de datos
-    pass
-
-# Funciones de consulta sobre el catálogo
-
+    
+    data_dir = os.path.dirname(os.path.realpath('__file__')) + '/Data/Challenge-2/'
+    file_path = os.path.join(data_dir, filename)
+    with open(file_path, mode='r', encoding='utf-8-sig') as file:
+        csv_reader = csv.DictReader(file)
+        for row in csv_reader:
+            id = row.get('id', 'Indefinido')
+            if id != 'Indefinido':
+                catalog[id] = {
+                    'title': row.get('title', 'Indefinido'),
+                    'original_language': row.get('original_language', 'Indefinido'),
+                    'release_date': row.get('release_date', 'Indefinido'),
+                    'revenue': row.get('revenue', 'Indefinido'),
+                    'runtime': row.get('runtime', 'Indefinido'),
+                    'status': row.get('status', 'Indefinido'),
+                    'vote_average': row.get('vote_average', 'Indefinido'),
+                    'vote_count': row.get('vote_count', 'Indefinido'),
+                    'budget': row.get('budget', 'Indefinido'),
+                    'genres': json.loads(row.get('genres', '[]')),
+                    'production_companies': json.loads(row.get('production_companies', '[]'))
+                }
+                
 def get_data(catalog, id):
     """
     Retorna un dato por su ID.
