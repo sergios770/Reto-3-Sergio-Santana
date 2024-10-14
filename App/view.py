@@ -1,12 +1,16 @@
 import sys
+import App.logic as logic
+from tabulate import tabulate
 
+default_limit = 1000
+sys.setrecursionlimit(default_limit*10)
 
 def new_logic():
     """
         Se crea una instancia del controlador
     """
-    #TODO: Llamar la función de la lógica donde se crean las estructuras de datos
-    pass
+    control = logic.new_logic()
+    return control
 
 def print_menu():
     print("Bienvenido")
