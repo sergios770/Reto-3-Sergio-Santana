@@ -145,8 +145,7 @@ def get_element(my_list, pos):
     """
     
     try:
-        # Asegúrate de que el acceso sea directo a la lista
-        return my_list[pos]
+        return my_list['elements'][pos]
     except IndexError as exp:
         raise Exception('arraylist->getElement: ', exp)
 
@@ -343,7 +342,7 @@ def sub_list(my_list, pos, num_elem):
         sublst = {'elements': [],
                   'size': 0,
                   'type': 'ARRAY_LIST'}
-        elem = pos-1
+        elem = pos
         cont = 1
         while cont <= num_elem:
             sublst['elements'].append(my_list['elements'][elem])
@@ -422,15 +421,15 @@ def selection_sort(my_list, sort_crit):
         n = size(my_list)
         pos1 = 0
         while pos1 < n:
-            minimum = pos1    # minimun tiene el menor elemento
+            minimum = pos1
             pos2 = pos1 + 1
             while (pos2 < n):
                 if (sort_crit(get_element(my_list, pos2),
                 (get_element(my_list, minimum)))):
-                    minimum = pos2  # minimum = posición elemento más pequeño
+                    minimum = pos2
                 pos2 += 1
             if minimum != pos1:
-                exchange(my_list, pos1, minimum)  # elemento más pequeño -> elem pos1
+                exchange(my_list, pos1, minimum)
             pos1 += 1
     return my_list
 
@@ -488,7 +487,7 @@ def shell_sort(my_list, sort_crit):
     if size(my_list) > 1:
         n = size(my_list)
         h = 1
-        while h < n/3:   # primer gap. La lista se h-ordena con este tamaño
+        while h < n/3:
             h = 3*h + 1
         while (h >= 1):
             for i in range(h, n):
@@ -498,7 +497,7 @@ def shell_sort(my_list, sort_crit):
                                     get_element(my_list, j-h)):
                     exchange(my_list, j, j-h)
                     j -= h
-            h //= 3    # h se decrementa en un tercio
+            h //= 3
     return my_list
 
 def merge_sort(my_list, sort_crit):
@@ -523,15 +522,11 @@ def merge_sort(my_list, sort_crit):
     n = size(my_list)
     if n > 1:
         mid = (n // 2)
-        #se divide la lista original, en dos partes, izquierda y derecha, desde el punto mid.
         left_list = sub_list(my_list, 0, mid)
         right_list = sub_list(my_list, mid, n - mid)
-
-        #se hace el llamado recursivo con la lista izquierda y derecha 
         merge_sort(left_list, sort_crit)
         merge_sort(right_list, sort_crit)
 
-        #i recorre la lista izquierda, j la derecha y k la lista original
         i = j = k = 0
 
         left_elements = size(left_list)
@@ -540,16 +535,14 @@ def merge_sort(my_list, sort_crit):
         while (i < left_elements) and (j < righ_telements):
             elem_i = get_element(left_list, i)
             elem_j = get_element(right_list, j)
-            # compara y ordena los elementos
-            if sort_crit(elem_j, elem_i):   # caso estricto elem_j < elem_i
+            if sort_crit(elem_j, elem_i):
                 change_info(my_list, k, elem_j)
                 j += 1
-            else:                            # caso elem_i <= elem_j
+            else:
                 change_info(my_list, k, elem_i)
                 i += 1
             k += 1
 
-        # Agrega los elementos que no se comprararon y estan ordenados
         while i < left_elements:
             change_info(my_list, k, get_element(left_list, i))
             i += 1

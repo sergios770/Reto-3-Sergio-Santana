@@ -33,7 +33,7 @@ def sort_criteria_decreasingly(element1, element2):
     return is_sorted
     
 
-@pytest.mark.skip(reason="No implementado aun")
+
 def test_selection_sort():
 
     empty_list, one_element_list, random_lista, inverted_list = setup_tests()
@@ -71,7 +71,7 @@ def test_selection_sort():
     for i in range(0, 15):
         assert lt.get_element(back_up, i) == reference_inverted_list[i]
 
-@pytest.mark.skip(reason="No implementado aun")
+
 def test_insertion_sort():
 
     empty_list, one_element_list, random_lista, inverted_list = setup_tests()
@@ -109,7 +109,7 @@ def test_insertion_sort():
     for i in range(0, 14):
         assert lt.get_element(back_up, i) == reference_inverted_list[i]
 
-@pytest.mark.skip(reason="No implementado aun")
+
 def test_shell_sort():
     empty_list, one_element_list, random_lista, inverted_list = setup_tests()
     back_up = random_lista
@@ -146,7 +146,7 @@ def test_shell_sort():
     for i in range(0, 14):
         assert lt.get_element(back_up, i) == reference_inverted_list[i]
 
-@pytest.mark.skip(reason="No implementado aun")
+
 def test_merge_sort():
     empty_list, one_element_list, random_lista, inverted_list = setup_tests()
     back_up = random_lista
@@ -183,7 +183,7 @@ def test_merge_sort():
     for i in range(0, 14):
         assert lt.get_element(back_up, i) == reference_inverted_list[i]
 
-@pytest.mark.skip(reason="No implementado aun")
+
 def test_quick_sort():
     empty_list, one_element_list, random_lista, inverted_list = setup_tests()
     back_up = random_lista
