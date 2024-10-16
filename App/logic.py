@@ -1,14 +1,26 @@
 import time
-import csv
 import json
+import csv
 import os
 from datetime import datetime
+import sys
+current_dir = os.path.dirname(os.path.abspath(__file__))
+root_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
+sys.path.append(root_dir)
+from DataStructures.Map import map_linear_probing as mp
 
 def new_logic():
     """
     Crea el catalogo para almacenar las estructuras de datos
     """
     catalog = {}
+    
+    num_elements = 1000  
+    load_factor = 0.75    
+    prime = 109345121
+    
+    catalog["movies"] = mp.new_map(num_elements, load_factor, prime)
+    
     return catalog
 
 
@@ -21,59 +33,32 @@ def load_data(catalog, filename):
     
     data_dir = os.path.dirname(os.path.realpath('__file__')) + '/Data/Challenge-2/'
     file_path = os.path.join(data_dir, filename)
-    
-    with open(file_path, mode='r', encoding='utf-8-sig') as file:
+   
+    with open(file_path, mode='r', encoding='utf-8') as file:
         csv_reader = csv.DictReader(file)
-
+    
         for row in csv_reader:
             
-            id = row.get('title', 'Indefinido')
-
-            if id not in catalog:
-                catalog[id] = {}
-                
-            catalog[id]['original_language'] = row.get('original_language', 'Indefinido')
+            movie_id = row.get('id')
             
-            date_str = row.get('release_date', 'Indefinido')
-            if date_str != 'Desconocido' and len(date_str) == 10:
-                formatted_date = date_str
-            else:
-                formatted_date = 'Indefinido'
-            catalog[id]['release_date'] = formatted_date
-
-            revenue = row.get('revenue', 'Indefinido')
-            catalog[id]['revenue'] = revenue if revenue != '0' else 'Indefinido'
-
-            runtime = row.get('runtime', 'Indefinido')
-            catalog[id]['runtime'] = runtime if runtime != '[]' else 'Indefinido'
-
-            status = row.get('status', 'Indefinido')
-            catalog[id]['status'] = status if status != '[]' else 'Indefinido'
-
-            vote_average = row.get('vote_average', 'Indefinido')
-            catalog[id]['vote_average'] = vote_average if vote_average != '[]' else 'Indefinido'
-
-            vote_count = row.get('vote_count', 'Indefinido')
-            catalog[id]['vote_count'] = vote_count if vote_count != '[]' else 'Indefinido'
-
-            budget = row.get('budget', 'Indefinido')
-            catalog[id]['budget'] = budget if budget != '0' else 'Indefinido'
-
-            genres_str = row.get('genres', '[]')
-            genres_list = json.loads(genres_str)
-            if genres_list:
-                genres_processed = [genre['name'] for genre in genres_list if 'name' in genre]
-                catalog[id]['genres'] = genres_processed
-            else:
-                catalog[id]['genres'] = ['Desconocido']
-
-            production_companies_str = row.get('production_companies', '[]')
-            production_companies_list = json.loads(production_companies_str)
-            if production_companies_list:
-                companies_processed = [company['name'] for company in production_companies_list if 'name' in company]
-                catalog[id]['production_companies'] = companies_processed
-            else:
-                catalog[id]['production_companies'] = ['Indefinida']
+            movie_data = {
+                'original_language': row.get('original_language', 'Indefinido'),
+                'release_date': row.get('release_date', 'Indefinido'),
+                'revenue': row.get('revenue', 'Indefinido'),
+                'runtime': row.get('runtime', 'Indefinido'),
+                'status': row.get('status', 'Indefinido'),
+                'vote_average': row.get('vote_average', 'Indefinido'),
+                'budget': row.get('budget', 'Indefinido'),
+                'genres': json.loads(row.get('genres', '[]')),
+                'production_companies': json.loads(row.get('production_companies', '[]'))
+            }
+            
+            if movie_id:
+                mp.put(catalog['movies'], movie_id, movie_data)
+                
+catalog = new_logic()
+load_data(catalog, "movies-large.csv")
+print(catalog)
 
                 
 def get_data(catalog, id):

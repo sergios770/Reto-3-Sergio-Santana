@@ -1,6 +1,9 @@
 import sys
 import App.logic as logic
 from tabulate import tabulate
+import csv
+
+csv.field_size_limit(2147483647)
 
 default_limit = 1000
 sys.setrecursionlimit(default_limit*10)
