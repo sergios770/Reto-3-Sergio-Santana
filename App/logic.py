@@ -108,12 +108,47 @@ def req_3(catalog):
     pass
 
 
-def req_4(catalog):
+def req_4(catalog, status, fecha_i, fecha_f):
     """
     Retorna el resultado del requerimiento 4
     """
-    # TODO: Modificar el requerimiento 4
-    pass
+    movies = mp.value_set(catalog)
+    numero_peliculas = 0
+    duracion_total = 0
+    lista_resp = lt.new_list()
+    fecha_i_dt = datetime.strptime(fecha_i, "%Y-%m-%d")
+    fecha_f_dt = datetime.strptime(fecha_f, "%Y-%m-%d")
+
+    
+    for movie in movies['elements']:
+        movie_fecha_dt = datetime.strptime(movie['release_date'], "%Y-%m-%d")
+        if movie['status'].lower() == status.lower() and fecha_i_dt <= movie_fecha_dt <= fecha_f_dt:
+            numero_peliculas += 1
+            duracion_total += float(movie['runtime']) if movie['runtime'] != 'Indefinido' else 0
+            movie['gains'] = int(movie['revenue']) - int(movie['budget']) if movie['revenue'] != 'Indefinido' and movie['revenue'] != 'Indefinido' else 'Indefinido'
+            lt.add_last(lista_resp, movie)
+            
+    if lt.size(lista_resp) > 1:
+        def sort_crit(movie1, movie2):
+            date1 = datetime.strptime(movie1['release_date'], "%Y-%m-%d")
+            date2 = datetime.strptime(movie2['release_date'], "%Y-%m-%d")
+            return date1 > date2
+
+    
+    lista_resp = lt.merge_sort(lista_resp, sort_crit)
+        
+    if numero_peliculas > 0:
+        duracion_promedio = float(round(duracion_total / numero_peliculas, 3))
+    else:
+        duracion_promedio = 0
+        
+    if lt.size(lista_resp) > 20:
+        lista_resp["elements"][:10]
+        lista_resp["size"] = 10
+        
+    return numero_peliculas, duracion_promedio, lista_resp
+
+print(req_4(catalog, "Released", "1983-12-29", "1988-05-18"))
 
 
 def req_5(catalog):
