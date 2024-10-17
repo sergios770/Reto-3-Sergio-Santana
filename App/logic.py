@@ -8,6 +8,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
 sys.path.append(root_dir)
 from DataStructures.Map import map_linear_probing as mp
+from DataStructures.List import array_list as lt
 
 def new_logic():
     """
@@ -19,7 +20,7 @@ def new_logic():
     load_factor = 0.75    
     prime = 109345121
     
-    catalog["movies"] = mp.new_map(num_elements, load_factor, prime)
+    catalog = mp.new_map(num_elements, load_factor, prime)
     
     return catalog
 
@@ -39,61 +40,65 @@ def load_data(catalog, filename):
     
         for row in csv_reader:
             
-            movie_id = row.get('id')
+            id = row.get('id')
             
             movie_data = {
+                'budget': row.get('budget', 'Indefinido'),
+                'genres': json.loads(row.get('genres', '[]')),
                 'original_language': row.get('original_language', 'Indefinido'),
+                'popularity': row.get('popularity', 'Indefinido'),
+                'production_companies': json.loads(row.get('production_companies', '[]')),
                 'release_date': row.get('release_date', 'Indefinido'),
                 'revenue': row.get('revenue', 'Indefinido'),
                 'runtime': row.get('runtime', 'Indefinido'),
                 'status': row.get('status', 'Indefinido'),
+                'title': row.get('title', 'Indefinido'),
                 'vote_average': row.get('vote_average', 'Indefinido'),
-                'budget': row.get('budget', 'Indefinido'),
-                'genres': json.loads(row.get('genres', '[]')),
-                'production_companies': json.loads(row.get('production_companies', '[]'))
-            }
+                'vote_count': row.get('vote_count', 'Indefinido'),
+                }
             
-            if movie_id:
-                mp.put(catalog['movies'], movie_id, movie_data)
+            if id:
+                mp.put(catalog, id, movie_data)
                 
 catalog = new_logic()
-load_data(catalog, "movies-large.csv")
-print(catalog)
+load_data(catalog, "movies-small.csv")
+"print(catalog)"
 
                 
 def get_data(catalog, id):
     """
     Retorna un dato por su ID.
     """
-    if id in catalog:
-        return {
-            'id': id,
-            'original_language': catalog[id].get('original_language', 'Indefinido'),
-            'release_date': catalog[id].get('release_date', 'Indefinido'),
-            'revenue': catalog[id].get('revenue', 'Indefinido'),
-            'runtime': catalog[id].get('runtime', 'Indefinido'),
-            'status': catalog[id].get('status', 'Indefinido'),
-            'vote_average': catalog[id].get('vote_average', 'Indefinido'),
-            'vote_count': catalog[id].get('vote_count', 'Indefinido'),
-            'budget': catalog[id].get('budget', 'Indefinido'),
-            'genres': catalog[id].get('genres', ['Indefinido']),
-            'production_companies': catalog[id].get('production_companies', ['Indefinido'])}
+    movie = mp.get(catalog, id)
+    
+    if movie:
+        return movie['value']
+    else:
+        return None
 
-def req_1(catalog):
+def req_1(catalog, title, original_language):
     """
     Retorna el resultado del requerimiento 1
     """
-    # TODO: Modificar el requerimiento 1
-    pass
+    movies = mp.value_set(catalog)
+    
+    for movie in movies['elements']:
+        if movie['title'].lower() == title.lower() and movie['original_language'].lower() == original_language.lower():
+            movie['gains'] = int(movie['revenue']) - int(movie['budget']) if movie['revenue'] != 'Indefinido' and movie['revenue'] != 'Indefinido' else 'Indefinido'
+            return movie
+        
+    return None
+    
+    
+
+print(req_1(catalog, 'BMX Bandits', 'en' ))
 
 
 def req_2(catalog):
     """
     Retorna el resultado del requerimiento 2
     """
-    # TODO: Modificar el requerimiento 2
     pass
-
 
 def req_3(catalog):
     """

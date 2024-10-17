@@ -104,7 +104,9 @@ def remove(my_map, key):
     return my_map  
 
 def size(my_map):
-
+    if my_map is None:
+        return 0
+    
     return my_map['size']
 
 def is_empty(my_map):
@@ -112,21 +114,20 @@ def is_empty(my_map):
     return my_map['size'] == 0
 
 def key_set(my_map):
-    keys = []
+    keys = lt.new_list()
     table = my_map['table']['elements']
     
-    for entry in table:
-        if entry is not None:
-            keys.append(me.get_key(entry))
+    for element in table:
+        if element is not None:
+            lt.add_last(keys, element['key'])
     return keys
 
 def value_set(my_map):
-    values = []
+    values = lt.new_list()
     table = my_map['table']['elements']
-    
-    for entry in table:
-        if entry is not None:
-            values.append(me.get_value(entry))
+    for element in table:
+        if element is not None:
+            lt.add_last(values, element['value'])
     return values
 
 
@@ -150,18 +151,17 @@ def is_available(table, pos):
     return table['elements'][pos] is None or table['elements'][pos] == None
 
 def rehash(my_map):
-    old_table = my_map['table']['elements']
-    new_capacity = mf.next_prime(my_map['capacity'] * 2)
+    old_table = my_map["table"]["elements"]
+    new_capacity = mf.next_prime(2 * my_map["capacity"])
+    new_table = lt.new_list()
+    new_table["elements"] = [None] * new_capacity
+    my_map["table"] = new_table
+    my_map["capacity"] = new_capacity
+    my_map["size"] = 0
     
-    for i in range(new_capacity):
-        lt.add_last(my_map['table']['elements'], None)
-     
-    my_map['capacity'] = new_capacity
-    my_map['size'] = 0
-    
-    for entry in old_table:
-        if entry is not None:
-            key = me.get_key(entry)
-            value = me.get_value(entry)
-            put(my_map, key, value)
+    for element in old_table:
+        if element is not None:
+            put(my_map, element['key'], element['value'])
+            
     return my_map
+    
