@@ -1,48 +1,202 @@
-import time
+from DataStructures.List import array_list as lt
+
 import csv
-import json
-from DataStructures.Maps import map_linear_probing as lp
-from DataStructures.List import array_list as al
-from DataStructures.List import single_linked_list as sll
+import os
 from datetime import datetime
+from collections import defaultdict
+
+
+data_dir = os.path.dirname(os.path.realpath('__file__')) + '/Data/'
+
+csv.field_size_limit(2147483647)
 
 def new_logic():
     """
-    Crea el catálogo para almacenar las estructuras de datos
+    Crea el catalogo para almacenar las estructuras de datos
     """
-    catalog = {
-        "accidents": {
-            "elements": al.new_array_list(),
-            "index": lp.new_map()
-        }
-    }
-    return catalog
+    catalog_list = {"accidents": None}
+    catalog_list["accidents"] = lt.new_list()    
+    
+    return catalog_list 
 
 
 # Funciones para la carga de datos
 
 def load_data(catalog, filename):
     """
-    Carga los datos del reto desde un archivo CSV y los agrega al catálogo.
+    Carga los datos del reto
     """
     moviesfile = data_dir + 'accidents-' + filename + ".csv"
     input_file = csv.DictReader(open(moviesfile, encoding='utf-8'))
     for accident in input_file:
-        add_accident(catalog, accident)
+        add_accident(catalog,accident)
     for accident in catalog["accidents"]["elements"]:
-        for variable in accident:
-            if accident[variable] == "":
-                accident[variable] = "desconocido"
-    
+        for variables in accident:
+            if accident[variables] == "":
+                accident[variables] = "desconocido"
     tamaño_catalog = accident_size(catalog)
+    
     return tamaño_catalog
 
+def accident_size(catalog):
+    return lt.size(catalog["accidents"])
+
 def add_accident(catalog, accident):
+    lt.add_last(catalog['accidents'], accident)
+    return catalog
+
+# Funciones de consulta sobre el catálogo
+
+def get_data(catalog, id):
     """
-    Agrega un accidente al catálogo.
+    Retorna un dato por su ID.
     """
-    al.add_last(catalog["accidents"]["elements"], accident)
-    lp.put(catalog["accidents"]["index"], accident['ID'], accident)
+    accidente = None
+    for accident in catalog["accidents"]["elements"]:
+        if accident["ID"] == id:
+            accidente = accident
+                    
+    return accidente
+
+def obtener_primeras_5(catalog):
+    accidentes = []
+    firsts = lt.sub_list(catalog["accidents"],0,5)
+    for accident in firsts["elements"]:
+        formato_fecha = "%Y-%m-%d %H:%M:%S"
+        fecha1 = accident["Start_Time"]
+        fecha2 = accident["End_Time"]
+        datetime1 = datetime.strptime(fecha1, formato_fecha)
+        datetime2 = datetime.strptime(fecha2, formato_fecha)
+        diferencia_horas = (datetime2 - datetime1).total_seconds() / 3600
+        info = {"ID del accidente": accident["ID"], 
+            "Fecha y hora del accidente": accident["Start_Time"],
+            "Ciudad y estado": accident["City"] + ", " + accident["State"],
+            "Descripcin del accidente": accident["Description"],
+            "Tiempo de duración del accidente": diferencia_horas}
+        accidentes.append(info)
+    return accidentes
+
+def obtener_ultimas_5(catalog):
+    accidentes = []
+    firsts = lt.sub_list(catalog["accidents"],catalog["accidentes"]["size"]-5,catalog["accidents"]["size"])
+    for accident in firsts["elements"]:
+        formato_fecha = "%Y-%m-%d %H:%M:%S"
+        fecha1 = accident["Start_Time"]
+        fecha2 = accident["End_Time"]
+        datetime1 = datetime.strptime(fecha1, formato_fecha)
+        datetime2 = datetime.strptime(fecha2, formato_fecha)
+        diferencia_horas = (datetime2 - datetime1).total_seconds() / 3600
+        info = {"ID del accidente": accident["ID"], 
+            "Fecha y hora del accidente": accident["Start_Time"],
+            "Ciudad y estado": accident["City"] + ", " + accident["State"],
+            "Descripcin del áccidente": accident["Description"],
+            "Tiempo de duración del accidente": diferencia_horas}
+        accidentes.append(info)
+    return accidentes
+
+
+def compare_by_fecha_and_severity(accident1, accident2):
+    fecha1 = datetime.strptime(accident1["Start_Time"], "%Y-%m-%d %H:%M:%S")
+    fecha2 = datetime.strptime(accident2["Start_Time"], "%Y-%m-%d %H:%M:%S")
+    
+    if fecha1 < fecha2:
+        return False
+    elif fecha1 > fecha2:
+        return True
+    else:
+        return float(accident1["Severity"]) > float(accident2["Severity"])
+    
+def compare_by_lat_long(accident1, accident2):
+    lat1_start = accident1["Start_Lat"] if accident1["Start_Lat"] != "desconocido" else None
+    long1_start = accident1["Start_Lng"] if accident1["Start_Lng"] != "desconocido" else None
+    lat1_end = accident1["End_Lat"] if accident1["End_Lat"] != "desconocido" else None
+    long1_end = accident1["End_Lng"] if accident1["End_Lng"] != "desconocido" else None
+    lat2_start = accident2["Start_Lat"] if accident2["Start_Lat"] != "desconocido" else None
+    long2_start = accident2["Start_Lng"] if accident2["Start_Lng"] != "desconocido" else None
+    lat2_end = accident2["End_Lat"] if accident2["End_Lat"] != "desconocido" else None
+    long2_end = accident2["End_Lng"] if accident2["End_Lng"] != "desconocido" else None
+    if lat1_start is not None and lat2_start is not None:
+        if float(lat1_start) < float(lat2_start):
+            return True
+        elif float(lat1_start) > float(lat2_start):
+            return False
+    if long1_start is not None and long2_start is not None:
+        if float(long1_start) < float(long2_start):
+            return True
+        elif float(long1_start) > float(long2_start):
+            return False
+    if lat1_end is not None and lat2_end is not None:
+        if float(lat1_end) < float(lat2_end):
+            return True
+        elif float(lat1_end) > float(lat2_end):
+            return False
+    if long1_end is not None and long2_end is not None:
+        if float(long1_end) < float(long2_end):
+            return True
+        elif float(long1_end) > float(long2_end):
+            return False
+    return False
+
+def ordenar_alfabeticamente(accident1, accident2):
+    if accident1.get("State", "") > accident2.get("State", ""):
+        return True
+    elif accident1.get("State", "") < accident2.get("State", ""):
+        return False
+    if accident1.get("county", "") > accident2.get("county", ""):
+        return True
+    elif accident1.get("county", "") < accident2.get("county", ""):
+        return False
+    if accident1.get("City", "") > accident2.get("City", ""):
+        return True
+    elif accident1.get("City", "") < accident2.get("City", ""):
+        return False
+    if accident1.get("Street", "") > accident2.get("Street", ""):
+        return True
+    
+    else:
+        return False
+
+def comparar_accidentes(ac1, ac2):
+    if ac1["total_accidentes"] > ac2["total_accidentes"]:
+            return True
+    elif ac1["total_accidentes"] == ac2["total_accidentes"]:
+        return ac1["promedio_severidad"] > ac2["promedio_severidad"]
+    else:
+        return False
+
+def prom_visibility(catalog):
+    contador = 0
+    sumatoria = 0
+    for accident in catalog["accidents"]["elements"]:
+        visibility = accident.get("Visibility(mi)", "desconocido")
+        if visibility != "desconocido":
+            sumatoria += float(visibility)
+            contador += 1
+    return sumatoria / contador if contador > 0 else 0  
+
+def prom_severity(catalog):
+    contador = 0
+    sumatoria = 0
+    for accident in catalog["accidents"]["elements"]:
+        severity = accident.get("Severity", "desconocido")
+        sumatoria += int(severity)
+        contador += 1
+    return sumatoria / contador if contador > 0 else 0 
+
+def calcular_duracion_en_horas(fecha_inicio, fecha_fin):
+    """
+    Calcula la duración en horas entre la fecha de inicio y la fecha de fin.
+    """
+    formato_fecha = "%Y-%m-%d %H:%M:%S" 
+    inicio = datetime.strptime(fecha_inicio, formato_fecha)
+    fin = datetime.strptime(fecha_fin, formato_fecha)
+    duracion_horas = (fin - inicio).total_seconds() / 3600
+    return duracion_horas
+
+# Funciones para medir tiempos de ejecucion
+
+
+
 
 # Funciones de consulta sobre el catálogo
 
@@ -52,7 +206,7 @@ def get_data(catalog, id):
     """
     Retorna un dato por su ID.
     """
-    data = lp.get(catalog["accidents"]["index"], id)
+    data = lt.get(catalog["accidents"]["index"], id)
     if data is not None:
         return data
     else:
@@ -112,12 +266,57 @@ def req_3(catalog):
     pass
 
 
-def req_4(catalog):
+def req_4(catalog, fecha_inicio, fecha_fin):
     """
-    Retorna el resultado del requerimiento 4
+    Requerimiento 4: Encuentra las vías más peligrosas en condiciones de baja visibilidad y alta severidad.
     """
-    # TODO: Modificar el requerimiento 4
-    pass
+    Severidad3 = lt.new_list()
+    Severidad4 = lt.new_list()
+    combinar = lt.new_list()
+    vias_dict = defaultdict(lambda: {"accidents_severity_3": 0, "accidents_severity_4": 0, "total_visibility": 0, "total_severity": 0, "count": 0})
+
+    # Filtrar y acumular datos de accidentes por el rango de fechas y condiciones específicas
+    for accident in catalog["accidents"]["elements"]:
+        fecha_accidente = datetime.strptime(accident["Start_Time"], "%Y-%m-%d %H:%M:%S")
+        
+        if fecha_inicio <= fecha_accidente <= fecha_fin:
+            visibility = float(accident["Visibility(mi)"]) if accident["Visibility(mi)"] != "desconocido" else 0
+            severity = int(accident["Severity"])
+            
+            # Filtrar accidentes con baja visibilidad (<1) y alta severidad (3 o 4)
+            if visibility < 1 and severity in [3, 4]:
+                key = (accident["State"], accident["County"], accident["City"], accident["Street"])
+                
+                # Acumular información de la vía en el diccionario
+                vias_dict[key]["total_visibility"] += visibility
+                vias_dict[key]["total_severity"] += severity
+                vias_dict[key]["count"] += 1
+                
+                # Actualizar conteo de accidentes de severidad
+                if severity == 3:
+                    vias_dict[key]["accidents_severity_3"] += 1
+                    lt.add_last(Severidad3, accident)
+                elif severity == 4:
+                    vias_dict[key]["accidents_severity_4"] += 1
+                    lt.add_last(Severidad4, accident)
+                
+                # Añadir a la lista de combinación
+                lt.add_last(combinar, accident)
+
+    # Calcular promedios de visibilidad y severidad por vía
+    for via in vias_dict.values():
+        via["avg_visibility"] = via["total_visibility"] / via["count"] if via["count"] > 0 else 0
+        via["avg_severity"] = via["total_severity"] / via["count"] if via["count"] > 0 else 0
+
+    # Ordenar la lista combinar alfabéticamente
+    lt.merge_sort(combinar, ordenar_alfabeticamente)
+    
+    # Calcular promedios generales de visibilidad y severidad
+    promedio_V = sum(via["avg_visibility"] for via in vias_dict.values()) / len(vias_dict) if vias_dict else 0
+    promedio_severidad = sum(via["avg_severity"] for via in vias_dict.values()) / len(vias_dict) if vias_dict else 0
+
+    return Severidad3, Severidad4, promedio_V, promedio_severidad, combinar, vias_dict
+
 
 
 def req_5(catalog):
@@ -127,20 +326,101 @@ def req_5(catalog):
     # TODO: Modificar el requerimiento 5
     pass
 
-def req_6(catalog):
+def req_6(catalog, fecha_inicio, fecha_fin, humedad, condados):
     """
     Retorna el resultado del requerimiento 6
     """
-    # TODO: Modificar el requerimiento 6
-    pass
+    accidentes = lt.new_list()
+    todo = catalog["accidents"]["elements"]
+    for acc in todo:
+        if fecha_inicio <= acc["Start_Time"] <= fecha_fin and float(acc["Humidity(%)"]) >= humedad and acc["County"] in condados:
+            lt.add_last(accidentes, acc)
+    
+    condado_info = {}
+    for acc in accidentes["elements"]:
+        condado = acc["County"]
+        if condado not in condado_info:
+            condado_info[condado] = {
+                "total_accidentes": 0,
+                "suma_temperatura": 0,
+                "suma_humedad": 0,
+                "suma_viento": 0,
+                "suma_distancia": 0,
+                "accidente_mas_grave": None,
+                "max_severidad": 0,
+                "accidentes": lt.new_list()
+            }
+        condado_info[condado]["total_accidentes"] += 1
+        condado_info[condado]["suma_temperatura"] += float(acc["Temperature(F)"])
+        condado_info[condado]["suma_humedad"] += float(acc["Humidity(%)"])
+        condado_info[condado]["suma_viento"] += float(acc["Wind_Speed(mph)"])
+        condado_info[condado]["suma_distancia"] += float(acc["Distance(mi)"])
+        lt.add_last(condado_info[condado]["accidentes"], acc)
+        
+        if int(acc["Severity"]) > condado_info[condado]["max_severidad"]:
+            condado_info[condado]["max_severidad"] = int(acc["Severity"])
+            condado_info[condado]["accidente_mas_grave"] = acc
+
+    respuesta = []
+    for condado, info in condado_info.items():
+        promedio_temperatura = info["suma_temperatura"] / info["total_accidentes"]
+        promedio_humedad = info["suma_humedad"] / info["total_accidentes"]
+        promedio_viento = info["suma_viento"] / info["total_accidentes"]
+        promedio_distancia = info["suma_distancia"] / info["total_accidentes"]
+        accidente_grave = info["accidente_mas_grave"]
+        
+        lt.merge_sort(info["accidentes"], compare_by_fecha_and_severity)
+        
+        respuesta.append({
+            "condado": condado,
+            "total_accidentes": info["total_accidentes"],
+            "promedio_temperatura": promedio_temperatura,
+            "promedio_humedad": promedio_humedad,
+            "promedio_viento": promedio_viento,
+            "promedio_distancia": promedio_distancia,
+            "accidente_mas_grave": {
+                "ID": accidente_grave["ID"],
+                "fecha_inicio": accidente_grave["Start_Time"],
+                "temperatura": accidente_grave["Temperature(F)"],
+                "humedad": accidente_grave["Humidity(%)"],
+                "distancia": accidente_grave["Distance(mi)"],
+                "descripcion": accidente_grave["Description"]
+            },
+            "accidentes": info["accidentes"]["elements"]
+        })
+
+    respuesta.sort(key=lambda x: x["total_accidentes"], reverse=True)
+    
+    
+    return respuesta
+    
 
 
-def req_7(catalog):
+def req_7(catalog, latitud_m, longitud_m, latitud_M, longitud_M):
     """
     Retorna el resultado del requerimiento 7
     """
-    # TODO: Modificar el requerimiento 7
-    pass
+    
+
+    
+    accidentes = lt.new_list()
+    
+    for accident in catalog["accidents"]["elements"]:
+        if accident["Start_Lat"] != "desconocido" and accident["Start_Lng"] != "desconocido":
+            if float(accident["Start_Lat"]) < latitud_M and float(accident["Start_Lat"]) > latitud_m and float(accident["Start_Lng"]) < longitud_M and float(accident["Start_Lng"]) > longitud_m:
+                lt.add_last(accidentes,accident)
+    
+    lt.merge_sort(accidentes,compare_by_lat_long)
+    tamaño = lt.size(accidentes)
+    respuesta = []
+    if lt.size(accidentes)>10:
+        respuesta = accidentes["elements"][:5] + accidentes["elements"][-5:]
+    else:
+        respuesta = accidentes["elements"]
+        
+
+    
+    return respuesta, tamaño
 
 
 def req_8(catalog):
@@ -153,16 +433,3 @@ def req_8(catalog):
 
 # Funciones para medir tiempos de ejecucion
 
-def get_time():
-    """
-    devuelve el instante tiempo de procesamiento en milisegundos
-    """
-    return float(time.perf_counter()*1000)
-
-
-def delta_time(start, end):
-    """
-    devuelve la diferencia entre tiempos de procesamiento muestreados
-    """
-    elapsed = float(end - start)
-    return elapsed
