@@ -1,18 +1,13 @@
 import sys
-from tabulate import tabulate 
-from DataStructures.List import array_list as lt
+from tabulate import tabulate
 import App.logic as logic
 from datetime import datetime
-import os
-data_dir = os.path.dirname(os.path.realpath('__file__')) + '/Data/'
 
 def new_logic():
     """
     Se crea una instancia del controlador
     """
     return logic.new_logic()
-
-
 
 def print_menu():
     print("Bienvenido")
@@ -27,13 +22,10 @@ def print_menu():
     print("9- Ejecutar Requerimiento 8 (Bono)")
     print("0- Salir")
 
-from tabulate import tabulate
-
 def load_data(control):
     """
     Carga los datos de accidentes en el catálogo y muestra las primeras y últimas cinco entradas
     """
-    # Cargar los datos usando la función de lógica
     tamaño_catalogo = logic.load_data(control, 'large')  # 'large' es el sufijo del archivo CSV
 
     # Obtener las primeras 5 entradas
@@ -44,7 +36,7 @@ def load_data(control):
         id_accidente = accident["ID del accidente"]
         fecha_hora = accident["Fecha y hora del accidente"]
         ciudad_estado = accident["Ciudad y estado"]
-        descripcion = accident["Descripcin del accidente"][:40]  # Máximo 40 caracteres
+        descripcion = accident["Descripción del accidente"][:40]  # Máximo 40 caracteres
         duracion = round(accident["Tiempo de duración del accidente"], 2)
         data = [id_accidente, fecha_hora, ciudad_estado, descripcion, duracion]
         table.append(data)
@@ -60,13 +52,14 @@ def load_data(control):
         id_accidente = accident["ID del accidente"]
         fecha_hora = accident["Fecha y hora del accidente"]
         ciudad_estado = accident["Ciudad y estado"]
-        descripcion = accident["Descripcin del accidente"][:40]  # Máximo 40 caracteres
+        descripcion = accident["Descripción del accidente"][:40]  # Máximo 40 caracteres
         duracion = round(accident["Tiempo de duración del accidente"], 2)
         data = [id_accidente, fecha_hora, ciudad_estado, descripcion, duracion]
         table.append(data)
     
     print(tabulate(table, headers=headers, tablefmt="outline"))
     print(f"\nEl archivo fue cargado exitosamente. Total de accidentes cargados: {tamaño_catalogo}")
+
 
 
 
@@ -87,10 +80,38 @@ def print_data(accidents, columnas):
 
 def print_req_1(control):
     """
-        Función que imprime la solución del Requerimiento 1 en consola
+    Función que imprime la solución del Requerimiento 1 en consola.
     """
-    # TODO: Imprimir el resultado del requerimiento 1
-    pass
+    # Solicitar al usuario las fechas de inicio y fin
+    fecha_inicio_str = input("Ingrese la fecha de inicio en formato YYYY-MM-DD HH:MM:SS: ")
+    fecha_fin_str = input("Ingrese la fecha final en formato YYYY-MM-DD HH:MM:SS: ")
+
+    # Convertir las fechas de string a objetos datetime
+    formato_fecha = "%Y-%m-%d %H:%M:%S"
+    fecha_inicio = datetime.strptime(fecha_inicio_str, formato_fecha)
+    fecha_fin = datetime.strptime(fecha_fin_str, formato_fecha)
+
+    # Llamar a la función req_1 y obtener los resultados
+    resultado = logic.req_1(control, fecha_inicio, fecha_fin)
+
+    # Preparar los datos para la tabla
+    headers = ["ID", "Fecha y Hora del Accidente", "Ciudad y Estado", "Descripción", "Duración (horas)"]
+    table = []
+    for accident in resultado["accidentes"]:
+        data = [
+            accident["ID del accidente"],
+            accident["Fecha y hora del accidente"],
+            accident["Ciudad y estado"],
+            accident["Descripción del accidente"],
+            round(accident["Tiempo de duración del accidente"], 2)
+        ]
+        table.append(data)
+    
+    # Imprimir la tabla usando tabulate
+    print(f"\nTotal de accidentes en el rango de fechas: {resultado['total_accidentes']}")
+    print("Accidentes más recientes y más antiguos en el rango especificado:")
+    print(tabulate(table, headers=headers, tablefmt="outline"))
+
 
 
 def print_req_2(control):
@@ -113,37 +134,43 @@ def print_req_4(control):
     """
     Función que imprime la solución del Requerimiento 4 en consola.
     """
-    fecha_inicio = input("Ingrese la fecha de inicio en formato YYYY-MM-DD HH:MM:SS: ")
-    fecha_fin = input("Ingrese la fecha final en formato YYYY-MM-DD HH:MM:SS: ")
-    fecha_inicio = datetime.strptime(fecha_inicio, "%Y-%m-%d %H:%M:%S")
-    fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d %H:%M:%S")
+    # Solicitar al usuario las fechas de inicio y fin
+    fecha_inicio_str = input("Ingrese la fecha de inicio en formato YYYY-MM-DD HH:MM:SS: ")
+    fecha_fin_str = input("Ingrese la fecha final en formato YYYY-MM-DD HH:MM:SS: ")
 
-    # Llamada a la función req_4 y obtención de los resultados
-    Severidad3, Severidad4, promedio_V, promedio_severidad, tiempo, combinar, vias_dict = logic.req_4(control, fecha_inicio, fecha_fin)
+    # Convertir las fechas de string a objetos datetime
+    formato_fecha = "%Y-%m-%d %H:%M:%S"
+    fecha_inicio = datetime.strptime(fecha_inicio_str, formato_fecha)
+    fecha_fin = datetime.strptime(fecha_fin_str, formato_fecha)
 
-    # Encabezados de la tabla
-    headers = ["Estado", "Condado", "Ciudad", "Nombre de la vía", "Peligrosidad",
-               "Total accidentes severidad 3", "Total accidentes severidad 4", "Visibilidad promedio"]
+    # Llamar a la función req_4 y obtener los resultados
+    Severidad3, Severidad4, promedio_V, promedio_severidad, combinar, vias_dict = logic.req_4(control, fecha_inicio, fecha_fin)
+
+    # Preparar la tabla para mostrar la información de cada vía
+    headers = ["Estado", "Condado", "Ciudad", "Nombre de la vía", "Peligrosidad (Prom. Severidad)",
+               "Accidentes Severidad 3", "Accidentes Severidad 4", "Visibilidad Promedio"]
+    table = []
     
-    # Preparar datos en el formato correcto
-    data = [
-        [
+    for key, via in sorted(vias_dict.items(), key=lambda x: (x[0][0], x[0][1], x[0][2], x[0][3])):  # Ordenar alfabéticamente
+        data = [
             key[0],  # Estado
             key[1],  # Condado
             key[2],  # Ciudad
             key[3],  # Nombre de la vía
-            round(via["accidents_severity_3"] + via["accidents_severity_4"], 2),  # Peligrosidad
+            round(via["avg_severity"], 2),  # Peligrosidad (Promedio de severidad)
             via["accidents_severity_3"],  # Total accidentes severidad 3
             via["accidents_severity_4"],  # Total accidentes severidad 4
             round(via["avg_visibility"], 2)  # Visibilidad promedio
         ]
-        for key, via in sorted(vias_dict.items(), key=lambda x: (x[0][0], x[0][1], x[0][2], x[0][3]))  # Ordenar alfabéticamente
-    ]
-    
+        table.append(data)
+
     # Imprimir la tabla usando tabulate
     print("\nVías identificadas en el rango de fechas:")
-    print(tabulate(data, headers=headers, tablefmt="grid"))
-    print(f"\nTiempo de ejecución: {tiempo:.2f} segundos")
+    print(tabulate(table, headers=headers, tablefmt="outline"))
+
+    # Mostrar promedios generales de visibilidad y severidad
+    print(f"\nPromedio de Visibilidad de todas las vías: {promedio_V:.2f}")
+    print(f"Promedio de Severidad de todas las vías: {promedio_severidad:.2f}")
 
 
 
@@ -155,12 +182,70 @@ def print_req_5(control):
     pass
 
 
+
+
 def print_req_6(control):
     """
-        Función que imprime la solución del Requerimiento 6 en consola
+    Función que imprime la solución del Req0
+    uerimiento 6 en consola.
     """
-    # TODO: Imprimir el resultado del requerimiento 6
-    pass
+    # Solicitar al usuario las fechas de inicio y fin
+    fecha_inicio_str = input("Ingrese la fecha de inicio en formato YYYY-MM-DD HH:MM:SS: ")
+    fecha_fin_str = input("Ingrese la fecha final en formato YYYY-MM-DD HH:MM:SS: ")
+    
+    # Solicitar la humedad mínima y la lista de condados
+    humedad = float(input("Ingrese el nivel mínimo de humedad: "))
+    condados_str = input("Ingrese la lista de condados separados por comas: ")
+    condados = [c.strip() for c in condados_str.split(",")]
+
+    # Convertir las fechas de string a objetos datetime
+    formato_fecha = "%Y-%m-%d %H:%M:%S"
+    fecha_inicio = datetime.strptime(fecha_inicio_str, formato_fecha)
+    fecha_fin = datetime.strptime(fecha_fin_str, formato_fecha)
+
+    # Llamar a la función req_6 y obtener los resultados
+    resultado = logic.req_6(control, fecha_inicio, fecha_fin, humedad, condados)
+
+    # Preparar la tabla para mostrar la información de cada condado
+    headers = ["Condado", "Total Accidentes", "Prom. Temperatura (°F)", "Prom. Humedad (%)", 
+               "Prom. Viento (mph)", "Prom. Distancia (mi)", "Accidente Más Grave (ID, Fecha, Descripción)"]
+    table = []
+    
+    for info in resultado:
+        accidente_grave = info["accidente_mas_grave"]
+        data = [
+            info["condado"],
+            info["total_accidentes"],
+            round(info["promedio_temperatura"], 2),
+            round(info["promedio_humedad"], 2),
+            round(info["promedio_viento"], 2),
+            round(info["promedio_distancia"], 2),
+            f"{accidente_grave['ID']}, {accidente_grave['fecha_inicio']}, {accidente_grave['descripcion'][:40]}..."
+        ]
+        table.append(data)
+
+    # Imprimir la tabla usando tabulate
+    print("\nInformación de los condados con accidentes bajo las condiciones especificadas:")
+    print(tabulate(table, headers=headers, tablefmt="outline"))
+
+    # Mostrar lista de accidentes ordenados por cada condado (opcional)
+    for info in resultado:
+        print(f"\nDetalles de accidentes en el condado: {info['condado']}")
+        accidentes_headers = ["ID", "Fecha", "Temperatura (°F)", "Humedad (%)", "Viento (mph)", "Distancia (mi)", "Descripción"]
+        accidentes_table = [
+            [
+                acc["ID"],
+                acc["Start_Time"],
+                acc["Temperature(F)"],
+                acc["Humidity(%)"],
+                acc["Wind_Speed(mph)"],
+                acc["Distance(mi)"],
+                acc["Description"][:40] + "..."
+            ]
+            for acc in info["accidentes"]
+        ]
+        print(tabulate(accidentes_table, headers=accidentes_headers, tablefmt="outline"))
+
 
 
 def print_req_7(control):

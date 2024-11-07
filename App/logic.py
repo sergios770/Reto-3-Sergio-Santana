@@ -1,13 +1,10 @@
 from DataStructures.List import array_list as lt
-
 import csv
 import os
 from datetime import datetime
 from collections import defaultdict
 
-
 data_dir = os.path.dirname(os.path.realpath('__file__')) + '/Data/'
-
 csv.field_size_limit(2147483647)
 
 def new_logic():
@@ -16,9 +13,7 @@ def new_logic():
     """
     catalog_list = {"accidents": None}
     catalog_list["accidents"] = lt.new_list()    
-    
     return catalog_list 
-
 
 # Funciones para la carga de datos
 
@@ -29,7 +24,7 @@ def load_data(catalog, filename):
     moviesfile = data_dir + 'accidents-' + filename + ".csv"
     input_file = csv.DictReader(open(moviesfile, encoding='utf-8'))
     for accident in input_file:
-        add_accident(catalog,accident)
+        add_accident(catalog, accident)
     for accident in catalog["accidents"]["elements"]:
         for variables in accident:
             if accident[variables] == "":
@@ -47,20 +42,9 @@ def add_accident(catalog, accident):
 
 # Funciones de consulta sobre el catálogo
 
-def get_data(catalog, id):
-    """
-    Retorna un dato por su ID.
-    """
-    accidente = None
-    for accident in catalog["accidents"]["elements"]:
-        if accident["ID"] == id:
-            accidente = accident
-                    
-    return accidente
-
 def obtener_primeras_5(catalog):
     accidentes = []
-    firsts = lt.sub_list(catalog["accidents"],0,5)
+    firsts = lt.sub_list(catalog["accidents"], 0, 5)
     for accident in firsts["elements"]:
         formato_fecha = "%Y-%m-%d %H:%M:%S"
         fecha1 = accident["Start_Time"]
@@ -68,31 +52,36 @@ def obtener_primeras_5(catalog):
         datetime1 = datetime.strptime(fecha1, formato_fecha)
         datetime2 = datetime.strptime(fecha2, formato_fecha)
         diferencia_horas = (datetime2 - datetime1).total_seconds() / 3600
-        info = {"ID del accidente": accident["ID"], 
+        info = {
+            "ID del accidente": accident["ID"], 
             "Fecha y hora del accidente": accident["Start_Time"],
             "Ciudad y estado": accident["City"] + ", " + accident["State"],
-            "Descripcin del accidente": accident["Description"],
-            "Tiempo de duración del accidente": diferencia_horas}
+            "Descripción del accidente": accident["Description"],
+            "Tiempo de duración del accidente": diferencia_horas
+        }
         accidentes.append(info)
     return accidentes
 
 def obtener_ultimas_5(catalog):
     accidentes = []
-    firsts = lt.sub_list(catalog["accidents"],catalog["accidentes"]["size"]-5,catalog["accidents"]["size"])
-    for accident in firsts["elements"]:
+    last_five = lt.sub_list(catalog["accidents"], lt.size(catalog["accidents"]) - 5, 5)
+    for accident in last_five["elements"]:
         formato_fecha = "%Y-%m-%d %H:%M:%S"
         fecha1 = accident["Start_Time"]
         fecha2 = accident["End_Time"]
         datetime1 = datetime.strptime(fecha1, formato_fecha)
         datetime2 = datetime.strptime(fecha2, formato_fecha)
         diferencia_horas = (datetime2 - datetime1).total_seconds() / 3600
-        info = {"ID del accidente": accident["ID"], 
+        info = {
+            "ID del accidente": accident["ID"], 
             "Fecha y hora del accidente": accident["Start_Time"],
             "Ciudad y estado": accident["City"] + ", " + accident["State"],
-            "Descripcin del áccidente": accident["Description"],
-            "Tiempo de duración del accidente": diferencia_horas}
+            "Descripción del accidente": accident["Description"],
+            "Tiempo de duración del accidente": diferencia_horas
+        }
         accidentes.append(info)
     return accidentes
+
 
 
 def compare_by_fecha_and_severity(accident1, accident2):
@@ -232,14 +221,15 @@ def req_1(catalog, fecha_1, fecha_2):
                 "Fecha y hora del accidente": accident['Start_Time'],
                 "Ciudad y estado": accident['City'] + ", " + accident['State'],
                 "Descripción del accidente": descripcion,
-                "Tiempo de duración del accidente": diferencia_horas
+                "Tiempo de duración del accidente": diferencia_horas,
+                "Severidad": int(accident['Severity'])
             }
             accidentes.append(info)
 
-    # Ordenar los accidentes por fecha de inicio de forma descendente
-    accidentes.sort(key=lambda x: datetime.strptime(x["Fecha y hora del accidente"], formato_fecha), reverse=True)
+    # Ordenar los accidentes por fecha de inicio descendente y luego por severidad descendente
+    accidentes.sort(key=lambda x: (datetime.strptime(x["Fecha y hora del accidente"], formato_fecha), x["Severidad"]), reverse=True)
 
-    # Limitar el resultado a los primeros 5 y últimos 5
+    # Limitar el resultado a los primeros 5 y últimos 5 si hay más de 10
     if len(accidentes) > 10:
         accidentes = accidentes[:5] + accidentes[-5:]
 
@@ -247,7 +237,6 @@ def req_1(catalog, fecha_1, fecha_2):
         "total_accidentes": len(accidentes),
         "accidentes": accidentes
     }
-
 
 
 def req_2(catalog):
@@ -274,25 +263,14 @@ def req_4(catalog, fecha_inicio, fecha_fin):
     Severidad4 = lt.new_list()
     combinar = lt.new_list()
     vias_dict = defaultdict(lambda: {"accidents_severity_3": 0, "accidents_severity_4": 0, "total_visibility": 0, "total_severity": 0, "count": 0})
-
-    # Filtrar y acumular datos de accidentes por el rango de fechas y condiciones específicas
     for accident in catalog["accidents"]["elements"]:
         fecha_accidente = datetime.strptime(accident["Start_Time"], "%Y-%m-%d %H:%M:%S")
-        
         if fecha_inicio <= fecha_accidente <= fecha_fin:
             visibility = float(accident["Visibility(mi)"]) if accident["Visibility(mi)"] != "desconocido" else 0
             severity = int(accident["Severity"])
-            
-            # Filtrar accidentes con baja visibilidad (<1) y alta severidad (3 o 4)
             if visibility < 1 and severity in [3, 4]:
                 key = (accident["State"], accident["County"], accident["City"], accident["Street"])
                 
-                # Acumular información de la vía en el diccionario
-                vias_dict[key]["total_visibility"] += visibility
-                vias_dict[key]["total_severity"] += severity
-                vias_dict[key]["count"] += 1
-                
-                # Actualizar conteo de accidentes de severidad
                 if severity == 3:
                     vias_dict[key]["accidents_severity_3"] += 1
                     lt.add_last(Severidad3, accident)
@@ -300,22 +278,28 @@ def req_4(catalog, fecha_inicio, fecha_fin):
                     vias_dict[key]["accidents_severity_4"] += 1
                     lt.add_last(Severidad4, accident)
                 
-                # Añadir a la lista de combinación
+                vias_dict[key]["total_visibility"] += visibility
+                vias_dict[key]["total_severity"] += severity
+                vias_dict[key]["count"] += 1
+                
                 lt.add_last(combinar, accident)
 
-    # Calcular promedios de visibilidad y severidad por vía
     for via in vias_dict.values():
-        via["avg_visibility"] = via["total_visibility"] / via["count"] if via["count"] > 0 else 0
-        via["avg_severity"] = via["total_severity"] / via["count"] if via["count"] > 0 else 0
-
-    # Ordenar la lista combinar alfabéticamente
+        if via["count"] > 0:
+            via["avg_visibility"] = via["total_visibility"] / via["count"]
+            via["avg_severity"] = via["total_severity"] / via["count"]
+        else:
+            via["avg_visibility"] = 0
+            via["avg_severity"] = 0
+    
     lt.merge_sort(combinar, ordenar_alfabeticamente)
     
-    # Calcular promedios generales de visibilidad y severidad
-    promedio_V = sum(via["avg_visibility"] for via in vias_dict.values()) / len(vias_dict) if vias_dict else 0
-    promedio_severidad = sum(via["avg_severity"] for via in vias_dict.values()) / len(vias_dict) if vias_dict else 0
+    promedio_V = sum([via["avg_visibility"] for via in vias_dict.values()]) / len(vias_dict) if len(vias_dict) > 0 else 0
+    promedio_severidad = sum([via["avg_severity"] for via in vias_dict.values()]) / len(vias_dict) if len(vias_dict) > 0 else 0
+    
+   
 
-    return Severidad3, Severidad4, promedio_V, promedio_severidad, combinar, vias_dict
+    return Severidad3, Severidad4, promedio_V, promedio_severidad,combinar, vias_dict 
 
 
 
@@ -326,14 +310,21 @@ def req_5(catalog):
     # TODO: Modificar el requerimiento 5
     pass
 
+from datetime import datetime
+
 def req_6(catalog, fecha_inicio, fecha_fin, humedad, condados):
     """
     Retorna el resultado del requerimiento 6
     """
     accidentes = lt.new_list()
     todo = catalog["accidents"]["elements"]
+    formato_fecha = "%Y-%m-%d %H:%M:%S"
+    
     for acc in todo:
-        if fecha_inicio <= acc["Start_Time"] <= fecha_fin and float(acc["Humidity(%)"]) >= humedad and acc["County"] in condados:
+        # Convertir Start_Time a datetime antes de la comparación
+        fecha_accidente = datetime.strptime(acc["Start_Time"], formato_fecha)
+        
+        if fecha_inicio <= fecha_accidente <= fecha_fin and float(acc["Humidity(%)"]) >= humedad and acc["County"] in condados:
             lt.add_last(accidentes, acc)
     
     condado_info = {}
@@ -391,8 +382,8 @@ def req_6(catalog, fecha_inicio, fecha_fin, humedad, condados):
 
     respuesta.sort(key=lambda x: x["total_accidentes"], reverse=True)
     
-    
     return respuesta
+
     
 
 
