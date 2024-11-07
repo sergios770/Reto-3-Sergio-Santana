@@ -312,6 +312,8 @@ def req_5(catalog):
 
 from datetime import datetime
 
+from datetime import datetime
+
 def req_6(catalog, fecha_inicio, fecha_fin, humedad, condados):
     """
     Retorna el resultado del requerimiento 6
@@ -324,8 +326,10 @@ def req_6(catalog, fecha_inicio, fecha_fin, humedad, condados):
         # Convertir Start_Time a datetime antes de la comparación
         fecha_accidente = datetime.strptime(acc["Start_Time"], formato_fecha)
         
-        if fecha_inicio <= fecha_accidente <= fecha_fin and float(acc["Humidity(%)"]) >= humedad and acc["County"] in condados:
-            lt.add_last(accidentes, acc)
+        # Verificar si la humedad es un valor válido y si cumple con las condiciones
+        if acc["Humidity(%)"] != "desconocido" and float(acc["Humidity(%)"]) >= humedad:
+            if fecha_inicio <= fecha_accidente <= fecha_fin and acc["County"] in condados:
+                lt.add_last(accidentes, acc)
     
     condado_info = {}
     for acc in accidentes["elements"]:
@@ -342,10 +346,17 @@ def req_6(catalog, fecha_inicio, fecha_fin, humedad, condados):
                 "accidentes": lt.new_list()
             }
         condado_info[condado]["total_accidentes"] += 1
-        condado_info[condado]["suma_temperatura"] += float(acc["Temperature(F)"])
-        condado_info[condado]["suma_humedad"] += float(acc["Humidity(%)"])
-        condado_info[condado]["suma_viento"] += float(acc["Wind_Speed(mph)"])
-        condado_info[condado]["suma_distancia"] += float(acc["Distance(mi)"])
+        
+        # Convertir y acumular valores si son válidos, de lo contrario ignorarlos
+        if acc["Temperature(F)"] != "desconocido":
+            condado_info[condado]["suma_temperatura"] += float(acc["Temperature(F)"])
+        if acc["Humidity(%)"] != "desconocido":
+            condado_info[condado]["suma_humedad"] += float(acc["Humidity(%)"])
+        if acc["Wind_Speed(mph)"] != "desconocido":
+            condado_info[condado]["suma_viento"] += float(acc["Wind_Speed(mph)"])
+        if acc["Distance(mi)"] != "desconocido":
+            condado_info[condado]["suma_distancia"] += float(acc["Distance(mi)"])
+        
         lt.add_last(condado_info[condado]["accidentes"], acc)
         
         if int(acc["Severity"]) > condado_info[condado]["max_severidad"]:
@@ -383,6 +394,7 @@ def req_6(catalog, fecha_inicio, fecha_fin, humedad, condados):
     respuesta.sort(key=lambda x: x["total_accidentes"], reverse=True)
     
     return respuesta
+
 
     
 

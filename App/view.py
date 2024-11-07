@@ -248,12 +248,41 @@ def print_req_6(control):
 
 
 
+
+
 def print_req_7(control):
     """
-        Función que imprime la solución del Requerimiento 7 en consola
+    Función que imprime la solución del Requerimiento 7 en consola.
     """
-    # TODO: Imprimir el resultado del requerimiento 7
-    pass
+    # Solicitar al usuario las coordenadas de latitud y longitud
+    latitud_m = float(input("Ingrese la latitud mínima: "))
+    longitud_m = float(input("Ingrese la longitud mínima: "))
+    latitud_M = float(input("Ingrese la latitud máxima: "))
+    longitud_M = float(input("Ingrese la longitud máxima: "))
+
+    # Llamar a la función req_7 y obtener los resultados
+    accidentes, tamaño = logic.req_7(control, latitud_m, longitud_m, latitud_M, longitud_M)
+
+    # Preparar los datos para mostrar la información de cada accidente
+    headers = ["ID", "Fecha y Hora del Accidente", "Latitud", "Longitud", "Ciudad", "Estado", "Descripción"]
+    table = []
+    
+    for accident in accidentes:
+        data = [
+            accident["ID"],
+            accident["Start_Time"],
+            accident["Start_Lat"],
+            accident["Start_Lng"],
+            accident["City"],
+            accident["State"],
+            accident["Description"][:40] + "..."  # Limitar la descripción a 40 caracteres
+        ]
+        table.append(data)
+
+    # Imprimir el número total de accidentes y los resultados en formato tabulado
+    print(f"\nTotal de accidentes en el área especificada: {tamaño}")
+    print("Detalles de los primeros y últimos accidentes en el área especificada:")
+    print(tabulate(table, headers=headers, tablefmt="outline"))
 
 
 def print_req_8(control):
