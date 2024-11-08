@@ -26,7 +26,7 @@ def load_data(control):
     """
     Carga los datos de accidentes en el catálogo y muestra las primeras y últimas cinco entradas
     """
-    tamaño_catalogo = logic.load_data(control, 'large')  # 'large' es el sufijo del archivo CSV
+    tamaño_catalogo = logic.load_data(control, 'small')  # 'large' es el sufijo del archivo CSV
 
     # Obtener las primeras 5 entradas
     print("Primeros cinco accidentes cargados:\n")
